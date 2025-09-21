@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <!-- SheetJS for reading Excel files -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- Leaflet for the map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha2d14-ZJof8x1vI+9+8/y/pL9R4t/8fF2S/N/hX2QzKx2gGf3vK2+9+y+2+t" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha2d14-ZJof8x1vI+9+8/y/pL9R4t/8fF2S/N/hX2QzKx2gGf3vK2+9+y+2+t" crossorigin=""></script>
 
     <style>
         /* Custom styles with a Pink Theme */
@@ -68,9 +71,26 @@
             visibility: visible;
             opacity: 1;
         }
+        #simulasi-title {
+            margin-bottom: 2rem; /* Add more space below title */
+        }
+        #simulasi-legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        #simulation-map {
+            height: 400px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
     </style>
 </head>
-<body class="antiasaed text-gray-800">
+<body class="antialiased text-gray-800">
 
     <!-- Main Container -->
     <div class="container mx-auto p-4 md:p-6 lg:p-8">
@@ -81,10 +101,6 @@
                 <div>
                     <h1 class="text-3xl font-bold text-pink-500">Dasbor PANTAS</h1>
                     <p class="text-gray-500 mt-1">PANtauan & AnaliSis Harga Beras</p>
-                </div>
-                <div class="text-right mt-4 md:mt-0">
-                    <p class="font-semibold">Tim: Hamba Allah</p>
-                    <p class="text-sm text-gray-500">No. Peserta: ASEC007</p>
                 </div>
             </div>
         </header>
@@ -130,9 +146,9 @@
                         </div>
                         <!-- Closeup Chart -->
                         <div id="forecast-closeup-container">
-                             <h3 class="text-lg font-semibold text-gray-700 mb-2">Detail Peramalan 12 Minggu ke Depan (Dapat di-zoom)</h3>
+                             <h3 class="text-lg font-semibold text-gray-700 mb-2">Detail Peramalan 12 Minggu ke Depan</h3>
                              <p class="text-sm text-gray-500 mb-4">Gunakan kursor untuk menyeleksi area pada grafik untuk memperbesar.</p>
-                            <div id="forecast-closeup-chart" class="plotly-chart w-full h-[400px]"></div>
+                             <div id="forecast-closeup-chart" class="plotly-chart w-full h-[400px]"></div>
                         </div>
                     </div>
                 </div>
@@ -187,26 +203,19 @@
                                 </div>
                             </div>
                             <hr/>
-                             <div class="space-y-3">
-                                <h3 class="text-lg font-semibold text-gray-700 flex items-center">
-                                    Pemicu Guncangan Historis
-                                    <div class="tooltip ml-2">
-                                        <i class="fa-solid fa-circle-info text-gray-400"></i>
-                                        <span class="tooltiptext">Muat ulang guncangan harga nyata yang pernah terjadi untuk melihat simulasi dampaknya.</span>
-                                    </div>
-                                </h3>
-                                <select id="historic-shock-select" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500">
-                                    <option value="">Pilih Kejadian...</option>
-                                </select>
-                            </div>
-                            <button id="run-simulation" class="w-full bg-pink-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-600 transition shadow-lg">
-                                <i class="fa-solid fa-play mr-2"></i>Jalankan Simulasi
-                            </button>
+                             <!-- Removed "Pemicu Guncangan Historis" section as requested -->
+                             <button id="run-simulation" class="w-full bg-pink-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-600 transition shadow-lg">
+                                 <i class="fa-solid fa-play mr-2"></i>Jalankan Simulasi
+                             </button>
                         </div>
                         <div class="lg:col-span-2 space-y-6">
                             <div class="bg-white p-4 rounded-xl shadow-md">
-                                <h3 class="font-semibold mb-2 text-center">Grafik Perbandingan Skenario (12 Minggu)</h3>
-                                 <div class="mb-4">
+                                <h3 class="font-semibold mb-2 text-center">Peta Perambatan Guncangan Harga</h3>
+                                <div id="simulation-map"></div>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl shadow-md">
+                                <h3 class="font-semibold mb-2 text-center mt-6" id="simulasi-title">Grafik Perbandingan Skenario (12 Minggu)</h3>
+                                <div class="mb-4">
                                     <label for="city-select-sim" class="block text-sm font-medium text-gray-700 mb-2">Pilih Kota Target untuk Grafik:</label>
                                     <select id="city-select-sim" class="w-full md:w-1/2 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"></select>
                                 </div>
@@ -253,7 +262,9 @@
         let historicalForecastData = [];
         let simulationData = {};
         let outlierData = [];
+        let koordinatKota = {};
         let currentSimData = null;
+        let map = null;
 
         // --- DOM ELEMENTS ---
         const loaderSection = document.getElementById('loader-section');
@@ -263,7 +274,6 @@
         const citySelectSim = document.getElementById('city-select-sim');
         const skenario1Kota = document.getElementById('skenario1-kota');
         const skenario2Kota = document.getElementById('skenario2-kota');
-        const historicShockSelect = document.getElementById('historic-shock-select');
         const trenChartDiv = document.getElementById('tren-chart');
         const forecastCloseupChartDiv = document.getElementById('forecast-closeup-chart');
         const runButton = document.getElementById('run-simulation');
@@ -326,12 +336,14 @@
 
                 // Parse Sheet 4: Koordinat_Kota
                 const sheet4 = workbook.Sheets['Koordinat_Kota'];
-                KOTA_LIST = XLSX.utils.sheet_to_json(sheet4).map(c => c.Kota);
+                const rawCoords = XLSX.utils.sheet_to_json(sheet4);
+                KOTA_LIST = rawCoords.map(c => c.Kota);
+                rawCoords.forEach(c => koordinatKota[c.Kota] = [c.Latitude, c.Longitude]);
 
                 return true; // Success
             } catch (error) {
                 console.error("Error loading or parsing data:", error);
-                loaderText.innerHTML = `<span class="text-red-500"><i class="fas fa-exclamation-triangle mr-2"></i>Gagal memuat data. Pastikan file <code class="bg-gray-200 p-1 rounded">data_dashboard_sirambat.xlsx</code> ada di repositori.</span>`;
+                loaderText.innerHTML = `<span class="text-red-500"><i class="fas fa-exclamation-triangle mr-2"></i>Gagal memuat data. Pastikan file <code class="bg-gray-200 p-1 rounded">data_dashboard_sirambat_gls.xlsx</code> ada di repositori.</span>`;
                 return false; // Failure
             }
         }
@@ -352,11 +364,6 @@
                 [citySelectTren, citySelectSim, skenario1Kota, skenario2Kota].forEach(sel => sel.innerHTML += option);
             });
             skenario2Kota.value = KOTA_LIST.length > 1 ? KOTA_LIST[1] : KOTA_LIST[0];
-            outlierData.forEach(o => {
-                const shockText = `Rp ${Math.round(o.Guncangan_Rp)}`;
-                const text = `${o.Tanggal} - ${o.Kota} (Guncangan: ${shockText})`;
-                historicShockSelect.innerHTML += `<option value='${JSON.stringify(o)}'>${text}</option>`;
-            });
 
             setupTabs();
             setupAccordion();
@@ -366,8 +373,13 @@
 
             // Initial Draw
             drawTrenCharts(KOTA_LIST[0]);
-            const initLayout = (title) => ({ title: title, xaxis: {visible: false}, yaxis: {visible: false}, annotations: [{ text: 'Jalankan simulasi untuk melihat hasil', showarrow: false }]});
-            Plotly.newPlot('line-chart-sim', [], initLayout(''));
+            
+            // Initial map setup
+            map = L.map('simulation-map').setView([koordinatKota.Jakarta[0], koordinatKota.Jakarta[1]], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            L.marker([koordinatKota.Jakarta[0], koordinatKota.Jakarta[1]]).addTo(map).bindPopup("<b>Jakarta</b>");
         }
 
         function setupTabs() {
@@ -417,6 +429,7 @@
         function drawTrenCharts(selectedCity) {
             const cityData = historicalForecastData.filter(d => d.Kota === selectedCity);
             const forecastData = cityData.filter(d => d.Status === 'Ramalan');
+            const historicalData = cityData.filter(d => d.Status === 'Aktual');
 
             // Chart 1: Main Overview
             const trace_aktual = {
@@ -429,37 +442,52 @@
             };
             const layout_overview = {
                 title: `Perkembangan Harga Beras di ${selectedCity}`,
-                xaxis: { title: 'Tanggal' }, yaxis: { title: 'Harga (Rp)' },
+                xaxis: { title: 'Tanggal', tickformat: '%d %b %Y' }, yaxis: { title: 'Harga (Rp)' },
                 margin: { l: 60, r: 30, t: 80, b: 50 }, legend: { x: 0.01, y: 0.98 }, hovermode: 'x unified'
             };
             Plotly.newPlot(trenChartDiv, [trace_aktual, trace_ramalan_overview], layout_overview, {responsive: true});
 
             // Chart 2: Forecast Closeup
+            const trace_aktual_closeup = {
+                x: forecastData.map(d => d.Tanggal), y: forecastData.map(d => d.Harga_Aktual),
+                mode: 'lines+markers', name: 'Data Aktual', line: { color: 'blue', width: 2 }, marker: {size: 8}
+            };
             const trace_ramalan_closeup = {
                 x: forecastData.map(d => d.Tanggal), y: forecastData.map(d => d.Harga_Ramalan),
-                mode: 'lines', name: 'Harga Ramalan', line: { color: 'var(--primary-color)', width: 2.5 }
+                mode: 'lines+markers', name: 'Harga Ramalan', line: { color: 'red', width: 2.5 }, marker: {size: 8}
             };
-            const trace_upper = {
-                x: forecastData.map(d => d.Tanggal), y: forecastData.map(d => d.Batas_Atas),
-                fill: 'none', mode: 'lines', line: { color: 'transparent' }, showlegend: false
+            
+            const layout_closeup = {
+                title: `Perbandingan Aktual dan Ramalan di ${selectedCity}`,
+                yaxis: { title: 'Harga (Rp)' },
+                xaxis: { title: 'Tanggal', tickformat: '%d %b %Y' },
+                margin: { l: 60, r: 30, t: 40, b: 50 },
+                legend: { x: 0.01, y: 0.98 },
+                hovermode: 'x unified',
+                // Tweak y-axis range to narrow the view
+                yaxis: {
+                  title: 'Harga (Rp)',
+                  range: [Math.min(...forecastData.map(d => d.Harga_Aktual), ...forecastData.map(d => d.Harga_Ramalan)) - 500,
+                          Math.max(...forecastData.map(d => d.Harga_Aktual), ...forecastData.map(d => d.Harga_Ramalan)) + 500]
+                }
             };
-            const trace_lower = {
-                x: forecastData.map(d => d.Tanggal), y: forecastData.map(d => d.Batas_Bawah),
-                fill: 'tonexty', mode: 'lines', fillcolor: 'rgba(107, 114, 128, 0.2)',
-                line: { color: 'transparent' }, name: '95% Rentang Prediksi', showlegend: true
-            };
-             const layout_closeup = {
-                yaxis: { title: 'Harga (Rp)' }, margin: { l: 60, r: 30, t: 40, b: 50 },
-                legend: { x: 0.01, y: 0.98 }, hovermode: 'x unified'
-            };
-            Plotly.newPlot(forecastCloseupChartDiv, [trace_lower, trace_upper, trace_ramalan_closeup], layout_closeup, {responsive: true});
+            Plotly.newPlot(forecastCloseupChartDiv, [trace_aktual_closeup, trace_ramalan_closeup], layout_closeup, {responsive: true});
         }
 
         function setupSimulasiTab() {
-            const updateVisuals = () => {
-                if (!currentSimData) return;
+            const updateVisuals = (data) => {
+                if (!data) return;
+                currentSimData = data;
                 drawSimChart(citySelectSim.value);
                 updateSimTable();
+                updateMapMarkers(data.skenario1);
+            };
+
+            const getSimResult = (source, shock, wk) => {
+                const baseImpacts = simulationData[source]?.[`Minggu ke-${wk}`] || {};
+                const impacts = {};
+                KOTA_LIST.forEach(k => impacts[k] = (baseImpacts[k] || 0) * (shock / 500));
+                return impacts;
             };
             
             runButton.addEventListener('click', () => {
@@ -468,45 +496,18 @@
                 const s2_source = skenario2Kota.value;
                 const s2_shock = parseFloat(document.getElementById('skenario2-guncangan').value);
                 
-                const getSimResult = (source, wk) => simulationData[source]?.[`Minggu ke-${wk}`] || {};
+                const s1_impacts_all_weeks = Array.from({length: 12}, (_, i) => getSimResult(s1_source, s1_shock, i + 1));
+                const s2_impacts_all_weeks = Array.from({length: 12}, (_, i) => getSimResult(s2_source, s2_shock, i + 1));
                 
-                const s1_impacts_all_weeks = Array.from({length: 12}, (_, i) => {
-                    const impacts = {};
-                    const baseImpacts = getSimResult(s1_source, i + 1);
-                    KOTA_LIST.forEach(k => impacts[k] = (baseImpacts[k] || 0) * (s1_shock/500));
-                    return impacts;
-                });
-                const s2_impacts_all_weeks = Array.from({length: 12}, (_, i) => {
-                    const impacts = {};
-                    const baseImpacts = getSimResult(s2_source, i + 1);
-                    KOTA_LIST.forEach(k => impacts[k] = (baseImpacts[k] || 0) * (s2_shock/500));
-                    return impacts;
-                });
-                
-                currentSimData = {
-                    skenario1: { source: s1_source, impacts: s1_impacts_all_weeks },
-                    skenario2: { source: s2_source, impacts: s2_impacts_all_weeks }
+                const simData = {
+                    skenario1: { source: s1_source, shock: s1_shock, impacts: s1_impacts_all_weeks },
+                    skenario2: { source: s2_source, shock: s2_shock, impacts: s2_impacts_all_weeks }
                 };
-                updateVisuals();
+                updateVisuals(simData);
             });
 
             citySelectSim.addEventListener('change', () => {
                 if(currentSimData) drawSimChart(citySelectSim.value);
-            });
-            
-            historicShockSelect.addEventListener('change', (e) => {
-                if (e.target.value) {
-                    const shockEvent = JSON.parse(e.target.value);
-                    skenario1Kota.value = shockEvent.Kota;
-                    // Find the closest value in the dropdown
-                    const shockValue = Math.abs(Math.round(shockEvent.Guncangan_Rp));
-                    const options = [250, 500, 1000];
-                    const closest = options.reduce((a, b) => {
-                        return Math.abs(b - shockValue) < Math.abs(a - shockValue) ? b : a;
-                    });
-                    document.getElementById('skenario1-guncangan').value = closest;
-                    runButton.click();
-                }
             });
         }
 
@@ -515,29 +516,34 @@
             const s1_impacts = currentSimData.skenario1.impacts.map(weekImpact => weekImpact[targetCity]);
             const s2_impacts = currentSimData.skenario2.impacts.map(weekImpact => weekImpact[targetCity]);
 
-            const trace1 = { x: weeks, y: s1_impacts, name: `Skenario 1 (${currentSimData.skenario1.source})`, type: 'scatter', mode: 'lines+markers', line: { color: 'var(--primary-color)' } };
-            const trace2 = { x: weeks, y: s2_impacts, name: `Skenario 2 (${currentSimData.skenario2.source})`, type: 'scatter', mode: 'lines+markers', line: { color: '#14b8a6' } }; // teal-500
+            const trace1 = { x: weeks, y: s1_impacts, name: `Skenario 1 (${currentSimData.skenario1.source}: Rp ${currentSimData.skenario1.shock})`, type: 'scatter', mode: 'lines+markers', line: { color: 'var(--primary-color)' } };
+            const trace2 = { x: weeks, y: s2_impacts, name: `Skenario 2 (${currentSimData.skenario2.source}: Rp ${currentSimData.skenario2.shock})`, type: 'scatter', mode: 'lines+markers', line: { color: '#14b8a6' } }; // teal-500
             
             const layout = { 
                 title: `Evolusi Dampak Guncangan di ${targetCity}`,
                 yaxis: { title: 'Dampak Rambatan (Rp)' }, 
                 xaxis: { tickangle: -45 },
-                margin: { l: 50, r: 20, t: 60, b: 100 }, 
-                legend: { orientation: 'h', y: 1.25, x: 0.5, xanchor: 'center' } 
+                margin: { l: 60, r: 20, t: 80, b: 100 }, 
+                legend: { x: 0.5, xanchor: 'center', y: -0.2 } 
             };
             Plotly.newPlot('line-chart-sim', [trace1, trace2], layout, {responsive: true});
         }
 
         function updateSimTable() {
             let tableHTML = '';
+            const skenario1Impacts = currentSimData.skenario1.impacts;
+            const skenario2Impacts = currentSimData.skenario2.impacts;
+
             for (let i = 0; i < 12; i++) {
                 KOTA_LIST.forEach(kota => {
+                    const impact1 = skenario1Impacts[i][kota];
+                    const impact2 = skenario2Impacts[i][kota];
                     tableHTML += `
                         <tr>
                             <td class="px-4 py-2 whitespace-nowrap">${i + 1}</td>
                             <td class="px-4 py-2 whitespace-nowrap">${kota}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">${currentSimData.skenario1.impacts[i][kota].toFixed(2)}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">${currentSimData.skenario2.impacts[i][kota].toFixed(2)}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">${impact1.toFixed(2)}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">${impact2.toFixed(2)}</td>
                         </tr>
                     `;
                 });
@@ -545,6 +551,42 @@
             document.getElementById('simulation-table-body').innerHTML = tableHTML;
         }
 
+        function updateMapMarkers(skenario) {
+            map.eachLayer(layer => {
+                if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            // Add source city marker (larger, different color)
+            const sourceCoords = koordinatKota[skenario.source];
+            L.circleMarker(sourceCoords, {
+                color: 'red',
+                fillColor: '#f03',
+                fillOpacity: 0.5,
+                radius: 10
+            }).addTo(map)
+              .bindPopup(`<b>Guncangan Awal di ${skenario.source}</b><br>Besar Guncangan: Rp ${skenario.shock}`).openPopup();
+            
+            // Add markers for all cities showing Week 1 impact
+            const week1Impacts = skenario.impacts[0];
+            for (const city in week1Impacts) {
+                if (city === skenario.source) continue;
+                const coords = koordinatKota[city];
+                const impact = week1Impacts[city];
+                const markerColor = impact > 0 ? 'green' : 'red';
+                const markerRadius = Math.max(5, Math.abs(impact) / 10);
+                
+                L.circleMarker(coords, {
+                    color: markerColor,
+                    fillColor: markerColor,
+                    fillOpacity: 0.5,
+                    radius: markerRadius
+                }).addTo(map)
+                  .bindPopup(`<b>${city}</b><br>Dampak Minggu 1: ${impact.toFixed(2)} Rp`);
+            }
+        }
+        
         // --- Start Application ---
         loadAndProcessData().then(success => {
             if (success) {
@@ -555,5 +597,3 @@
     </script>
 </body>
 </html>
-
-
