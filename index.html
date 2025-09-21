@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dasbor SI-RAMBAT | Analisis Harga Beras</title>
+    <title>Dasbor PANTAS | Analisis Harga Beras</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Plotly.js for charts -->
@@ -14,7 +14,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <style>
-        /* Custom styles with a new Pink Theme */
+        /* Custom styles with a Pink Theme */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
         :root {
@@ -37,22 +37,40 @@
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
-        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
-          -webkit-appearance: none; height: 1.25rem; width: 1.25rem; border-radius: 9999px;
-          background: var(--primary-color); cursor: pointer; margin-top: -6px;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-          width: 100%; height: 0.5rem; cursor: pointer;
-          background: #f3f4f6; border-radius: 9999px;
+          background: var(--primary-color);
         }
         .modal-overlay { transition: opacity 0.3s ease; }
         #loader-section {
             transition: opacity 0.5s ease-in-out;
         }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -110px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
-<body class="antialiased text-gray-800">
+<body class="antiasaed text-gray-800">
 
     <!-- Main Container -->
     <div class="container mx-auto p-4 md:p-6 lg:p-8">
@@ -61,8 +79,8 @@
         <header class="mb-6 bg-white p-6 rounded-xl shadow-md">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div>
-                    <h1 class="text-3xl font-bold text-pink-500">Dasbor SI-RAMBAT</h1>
-                    <p class="text-gray-500 mt-1">Sistem Interaktif RAmbatan BArang Pokok (Harga Beras)</p>
+                    <h1 class="text-3xl font-bold text-pink-500">Dasbor PANTAS</h1>
+                    <p class="text-gray-500 mt-1">PANtauan & AnaliSis Harga Beras</p>
                 </div>
                 <div class="text-right mt-4 md:mt-0">
                     <p class="font-semibold">Tim: Hamba Allah</p>
@@ -112,8 +130,8 @@
                         </div>
                         <!-- Closeup Chart -->
                         <div id="forecast-closeup-container">
-                             <h3 class="text-lg font-semibold text-gray-700 mb-2">Detail Peramalan 12 Minggu ke Depan</h3>
-                             <p class="text-sm text-gray-500 mb-4">Klik pada titik di garis peramalan (merah muda) untuk melihat detail angka.</p>
+                             <h3 class="text-lg font-semibold text-gray-700 mb-2">Detail Peramalan 12 Minggu ke Depan (Dapat di-zoom)</h3>
+                             <p class="text-sm text-gray-500 mb-4">Gunakan kursor untuk menyeleksi area pada grafik untuk memperbesar.</p>
                             <div id="forecast-closeup-chart" class="plotly-chart w-full h-[400px]"></div>
                         </div>
                     </div>
@@ -145,8 +163,12 @@
                                     <select id="skenario1-kota" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"></select>
                                 </div>
                                 <div>
-                                    <label for="skenario1-guncangan" class="block text-sm font-medium text-gray-700">Besar Guncangan (Rp)</label>
-                                    <input type="number" id="skenario1-guncangan" value="500" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500">
+                                    <label for="skenario1-guncangan" class="block text-sm font-medium text-gray-700">Besar Guncangan</label>
+                                    <select id="skenario1-guncangan" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500">
+                                        <option value="250">Rp 250</option>
+                                        <option value="500" selected>Rp 500</option>
+                                        <option value="1000">Rp 1.000</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="space-y-3">
@@ -156,13 +178,23 @@
                                     <select id="skenario2-kota" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"></select>
                                 </div>
                                 <div>
-                                    <label for="skenario2-guncangan" class="block text-sm font-medium text-gray-700">Besar Guncangan (Rp)</label>
-                                    <input type="number" id="skenario2-guncangan" value="500" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500">
+                                    <label for="skenario2-guncangan" class="block text-sm font-medium text-gray-700">Besar Guncangan</label>
+                                    <select id="skenario2-guncangan" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500">
+                                        <option value="250">Rp 250</option>
+                                        <option value="500" selected>Rp 500</option>
+                                        <option value="1000">Rp 1.000</option>
+                                    </select>
                                 </div>
                             </div>
                             <hr/>
                              <div class="space-y-3">
-                                <h3 class="text-lg font-semibold text-gray-700">Pemicu Guncangan Historis</h3>
+                                <h3 class="text-lg font-semibold text-gray-700 flex items-center">
+                                    Pemicu Guncangan Historis
+                                    <div class="tooltip ml-2">
+                                        <i class="fa-solid fa-circle-info text-gray-400"></i>
+                                        <span class="tooltiptext">Muat ulang guncangan harga nyata yang pernah terjadi untuk melihat simulasi dampaknya.</span>
+                                    </div>
+                                </h3>
                                 <select id="historic-shock-select" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500">
                                     <option value="">Pilih Kejadian...</option>
                                 </select>
@@ -172,34 +204,28 @@
                             </button>
                         </div>
                         <div class="lg:col-span-2 space-y-6">
-                            <div class="bg-white p-6 rounded-xl shadow-md">
-                                <label for="week-slider" class="block text-sm font-medium text-gray-700">Pilih Periode Setelah Guncangan:</label>
-                                <input id="week-slider" type="range" min="1" max="12" value="1" class="w-full mt-2">
-                                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>Minggu ke-1</span>
-                                    <span id="slider-label" class="font-bold text-pink-500 text-base">Minggu ke-1</span>
-                                    <span>Minggu ke-12</span>
+                            <div class="bg-white p-4 rounded-xl shadow-md">
+                                <h3 class="font-semibold mb-2 text-center">Grafik Perbandingan Skenario (12 Minggu)</h3>
+                                 <div class="mb-4">
+                                    <label for="city-select-sim" class="block text-sm font-medium text-gray-700 mb-2">Pilih Kota Target untuk Grafik:</label>
+                                    <select id="city-select-sim" class="w-full md:w-1/2 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"></select>
                                 </div>
+                                <div id="line-chart-sim" class="plotly-chart w-full h-[350px]"></div>
                             </div>
-                            <div class="grid grid-cols-1 gap-6">
-                                 <div class="bg-white p-4 rounded-xl shadow-md">
-                                    <h3 class="font-semibold mb-2 text-center">Grafik Perbandingan Skenario</h3>
-                                    <div id="bar-chart" class="plotly-chart w-full h-[350px]"></div>
-                                </div>
-                                <div class="bg-white p-6 rounded-xl shadow-md">
-                                    <h3 class="font-semibold mb-4">Tabel Detail Hasil Simulasi</h3>
-                                    <div class="overflow-x-auto">
-                                        <table class="min-w-full divide-y divide-gray-200">
-                                            <thead class="bg-gray-50">
-                                                <tr>
-                                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Kota</th>
-                                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Dampak Skenario 1 (Rp)</th>
-                                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Dampak Skenario 2 (Rp)</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="simulation-table-body" class="bg-white divide-y divide-gray-200 text-sm"></tbody>
-                                        </table>
-                                    </div>
+                            <div class="bg-white p-6 rounded-xl shadow-md">
+                                <h3 class="font-semibold mb-4">Tabel Detail Hasil Simulasi (12 Minggu)</h3>
+                                <div class="overflow-y-auto h-[400px]">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50 sticky top-0">
+                                            <tr>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Minggu</th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Kota Target</th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Dampak Skenario 1 (Rp)</th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Dampak Skenario 2 (Rp)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="simulation-table-body" class="bg-white divide-y divide-gray-200 text-sm"></tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -234,12 +260,12 @@
         const loaderText = document.getElementById('loader-text');
         const dashboardContent = document.getElementById('dashboard-content');
         const citySelectTren = document.getElementById('city-select-tren');
+        const citySelectSim = document.getElementById('city-select-sim');
         const skenario1Kota = document.getElementById('skenario1-kota');
         const skenario2Kota = document.getElementById('skenario2-kota');
         const historicShockSelect = document.getElementById('historic-shock-select');
         const trenChartDiv = document.getElementById('tren-chart');
         const forecastCloseupChartDiv = document.getElementById('forecast-closeup-chart');
-        const slider = document.getElementById('week-slider');
         const runButton = document.getElementById('run-simulation');
         
         // =========================================================================
@@ -323,7 +349,7 @@
             // Populate Dropdowns
             KOTA_LIST.forEach(kota => {
                 const option = `<option value="${kota}">${kota}</option>`;
-                [citySelectTren, skenario1Kota, skenario2Kota].forEach(sel => sel.innerHTML += option);
+                [citySelectTren, citySelectSim, skenario1Kota, skenario2Kota].forEach(sel => sel.innerHTML += option);
             });
             skenario2Kota.value = KOTA_LIST.length > 1 ? KOTA_LIST[1] : KOTA_LIST[0];
             outlierData.forEach(o => {
@@ -341,7 +367,7 @@
             // Initial Draw
             drawTrenCharts(KOTA_LIST[0]);
             const initLayout = (title) => ({ title: title, xaxis: {visible: false}, yaxis: {visible: false}, annotations: [{ text: 'Jalankan simulasi untuk melihat hasil', showarrow: false }]});
-            Plotly.newPlot('bar-chart', [], initLayout('Grafik Perbandingan'));
+            Plotly.newPlot('line-chart-sim', [], initLayout(''));
         }
 
         function setupTabs() {
@@ -386,19 +412,6 @@
 
         function setupTrenTab() {
             citySelectTren.addEventListener('change', (e) => drawTrenCharts(e.target.value));
-            
-            forecastCloseupChartDiv.on('plotly_click', (data) => {
-                const point = data.points[0];
-                if (point.curveNumber === 2) { // Forecast trace is the 2nd one in this chart
-                    const date = new Date(point.x).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
-                    const forecastVal = `Rp ${parseFloat(point.y).toFixed(2)}`;
-                    const pointData = historicalForecastData.find(d => d.Tanggal.getTime() === new Date(point.data.x[point.pointNumber]).getTime() && d.Kota === citySelectTren.value);
-                    const lowerBound = `Rp ${parseFloat(pointData.Batas_Bawah).toFixed(2)}`;
-                    const upperBound = `Rp ${parseFloat(pointData.Batas_Atas).toFixed(2)}`;
-                    const modalHTML = `<p><strong>Tanggal:</strong> ${date}</p><p><strong>Harga Ramalan:</strong> <span class="font-semibold text-pink-500">${forecastVal}</span></p><p><strong>Batas Bawah (95%):</strong> ${lowerBound}</p><p><strong>Batas Atas (95%):</strong> ${upperBound}</p>`;
-                    window.showModal(modalHTML);
-                }
-            });
         }
         
         function drawTrenCharts(selectedCity) {
@@ -445,10 +458,8 @@
         function setupSimulasiTab() {
             const updateVisuals = () => {
                 if (!currentSimData) return;
-                const week = slider.value;
-                document.getElementById('slider-label').textContent = `Minggu ke-${week}`;
-                drawBarChart(week);
-                updateTable(week);
+                drawSimChart(citySelectSim.value);
+                updateSimTable();
             };
             
             runButton.addEventListener('click', () => {
@@ -479,41 +490,58 @@
                 updateVisuals();
             });
 
-            slider.addEventListener('input', () => { if (currentSimData) document.getElementById('slider-label').textContent = `Minggu ke-${slider.value}`; });
-            slider.addEventListener('change', updateVisuals);
+            citySelectSim.addEventListener('change', () => {
+                if(currentSimData) drawSimChart(citySelectSim.value);
+            });
             
             historicShockSelect.addEventListener('change', (e) => {
                 if (e.target.value) {
                     const shockEvent = JSON.parse(e.target.value);
                     skenario1Kota.value = shockEvent.Kota;
-                    document.getElementById('skenario1-guncangan').value = Math.abs(Math.round(shockEvent.Guncangan_Rp));
+                    // Find the closest value in the dropdown
+                    const shockValue = Math.abs(Math.round(shockEvent.Guncangan_Rp));
+                    const options = [250, 500, 1000];
+                    const closest = options.reduce((a, b) => {
+                        return Math.abs(b - shockValue) < Math.abs(a - shockValue) ? b : a;
+                    });
+                    document.getElementById('skenario1-guncangan').value = closest;
                     runButton.click();
                 }
             });
         }
 
-        function drawBarChart(week) {
-            const weekIndex = week - 1;
-            const s1_impacts = KOTA_LIST.map(k => currentSimData.skenario1.impacts[weekIndex][k]);
-            const s2_impacts = KOTA_LIST.map(k => currentSimData.skenario2.impacts[weekIndex][k]);
-            const trace1 = { x: KOTA_LIST, y: s1_impacts, name: `Skenario 1 (${currentSimData.skenario1.source})`, type: 'bar', marker: { color: 'var(--primary-color)' } };
-            const trace2 = { x: KOTA_LIST, y: s2_impacts, name: `Skenario 2 (${currentSimData.skenario2.source})`, type: 'bar', marker: { color: '#14b8a6' } }; // teal-500
-            const layout = { barmode: 'group', yaxis: { title: 'Dampak Rambatan (Rp)' }, margin: { l: 50, r: 20, t: 40, b: 80 }, legend: { orientation: 'h', y: 1.2, x: 0.5, xanchor: 'center' } };
-            Plotly.newPlot('bar-chart', [trace1, trace2], layout, {responsive: true});
+        function drawSimChart(targetCity) {
+            const weeks = Array.from({length: 12}, (_, i) => `Minggu ke-${i + 1}`);
+            const s1_impacts = currentSimData.skenario1.impacts.map(weekImpact => weekImpact[targetCity]);
+            const s2_impacts = currentSimData.skenario2.impacts.map(weekImpact => weekImpact[targetCity]);
+
+            const trace1 = { x: weeks, y: s1_impacts, name: `Skenario 1 (${currentSimData.skenario1.source})`, type: 'scatter', mode: 'lines+markers', line: { color: 'var(--primary-color)' } };
+            const trace2 = { x: weeks, y: s2_impacts, name: `Skenario 2 (${currentSimData.skenario2.source})`, type: 'scatter', mode: 'lines+markers', line: { color: '#14b8a6' } }; // teal-500
+            
+            const layout = { 
+                title: `Evolusi Dampak Guncangan di ${targetCity}`,
+                yaxis: { title: 'Dampak Rambatan (Rp)' }, 
+                xaxis: { tickangle: -45 },
+                margin: { l: 50, r: 20, t: 60, b: 100 }, 
+                legend: { orientation: 'h', y: 1.25, x: 0.5, xanchor: 'center' } 
+            };
+            Plotly.newPlot('line-chart-sim', [trace1, trace2], layout, {responsive: true});
         }
 
-        function updateTable(week) {
-            const weekIndex = week - 1;
+        function updateSimTable() {
             let tableHTML = '';
-             KOTA_LIST.forEach(kota => {
-                tableHTML += `
-                    <tr>
-                        <td class="px-4 py-2 whitespace-nowrap">${kota}</td>
-                        <td class="px-4 py-2 whitespace-nowrap">${currentSimData.skenario1.impacts[weekIndex][kota].toFixed(2)}</td>
-                        <td class="px-4 py-2 whitespace-nowrap">${currentSimData.skenario2.impacts[weekIndex][kota].toFixed(2)}</td>
-                    </tr>
-                `;
-            });
+            for (let i = 0; i < 12; i++) {
+                KOTA_LIST.forEach(kota => {
+                    tableHTML += `
+                        <tr>
+                            <td class="px-4 py-2 whitespace-nowrap">${i + 1}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">${kota}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">${currentSimData.skenario1.impacts[i][kota].toFixed(2)}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">${currentSimData.skenario2.impacts[i][kota].toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+            }
             document.getElementById('simulation-table-body').innerHTML = tableHTML;
         }
 
