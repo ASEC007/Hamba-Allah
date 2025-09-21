@@ -12,9 +12,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <!-- SheetJS for reading Excel files -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <!-- Leaflet for the map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha2d14-ZJof8x1vI+9+8/y/pL9R4t/8fF2S/N/hX2QzKx2gGf3vK2+9+y+2+t" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha2d14-ZJof8x1vI+9+8/y/pL9R4t/8fF2S/N/hX2QzKx2gGf3vK2+9+y+2+t" crossorigin=""></script>
 
     <style>
         /* Custom styles with a Pink Theme */
@@ -74,20 +71,6 @@
         #simulasi-title {
             margin-bottom: 2rem; /* Add more space below title */
         }
-        #simulasi-legend {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        #simulation-map {
-            height: 400px;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        }
     </style>
 </head>
 <body class="antialiased text-gray-800">
@@ -123,7 +106,7 @@
                             <i class="fa-solid fa-chart-line mr-2"></i>Tren & Peramalan
                         </button>
                         <button id="tab-simulasi" class="tab-button py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-pink-500 hover:border-pink-300">
-                           <i class="fa-solid fa-water-arrow-up mr-2"></i>Simulasi Guncangan
+                           <i class="fa-solid fa-satellite-dish mr-2"></i>Simulasi Guncangan
                         </button>
                     </nav>
                 </div>
@@ -136,6 +119,10 @@
                     <div class="bg-white p-6 rounded-xl shadow-md">
                         <h2 class="text-xl font-semibold mb-4">Visualisasi Tren dan Peramalan Harga</h2>
                         <div class="mb-6">
+                            <div class="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+                                <span class="bg-blue-100 text-blue-800 p-1 px-2 rounded-lg">Model: GSTARIMA(1,1,1)-GARCH (GLS)</span>
+                                <span class="bg-green-100 text-green-800 p-1 px-2 rounded-lg">Rata-rata MAPE: 1.64%</span>
+                            </div>
                             <label for="city-select-tren" class="block text-sm font-medium text-gray-700 mb-2">Pilih Kota:</label>
                             <select id="city-select-tren" class="w-full md:w-1/3 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"></select>
                         </div>
@@ -172,14 +159,15 @@
                                 </div>
                             </div>
                             <hr/>
+                            <!-- Skenario tunggal -->
                             <div class="space-y-3">
-                                <h3 class="text-lg font-semibold text-pink-500">Skenario 1</h3>
+                                <h3 class="text-lg font-semibold text-pink-500">Skenario Guncangan</h3>
                                 <div>
-                                    <label for="skenario1-kota" class="block text-sm font-medium text-gray-700">Kota Sumber</label>
+                                    <label for="skenario1-kota" class="block text-sm font-medium text-gray-700">Kota Sumber Guncangan</label>
                                     <select id="skenario1-kota" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"></select>
                                 </div>
                                 <div>
-                                    <label for="skenario1-guncangan" class="block text-sm font-medium text-gray-700">Besar Guncangan</label>
+                                    <label for="skenario1-guncangan" class="block text-sm font-medium text-gray-700">Besar Guncangan (Kenaikan Harga)</label>
                                     <select id="skenario1-guncangan" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500">
                                         <option value="250">Rp 250</option>
                                         <option value="500" selected>Rp 500</option>
@@ -187,38 +175,27 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="space-y-3">
-                                <h3 class="text-lg font-semibold text-teal-500">Skenario 2</h3>
-                                <div>
-                                    <label for="skenario2-kota" class="block text-sm font-medium text-gray-700">Kota Sumber</label>
-                                    <select id="skenario2-kota" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"></select>
-                                </div>
-                                <div>
-                                    <label for="skenario2-guncangan" class="block text-sm font-medium text-gray-700">Besar Guncangan</label>
-                                    <select id="skenario2-guncangan" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500">
-                                        <option value="250">Rp 250</option>
-                                        <option value="500" selected>Rp 500</option>
-                                        <option value="1000">Rp 1.000</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <hr/>
-                             <!-- Removed "Pemicu Guncangan Historis" section as requested -->
-                             <button id="run-simulation" class="w-full bg-pink-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-600 transition shadow-lg">
+                            <button id="run-simulation" class="w-full bg-pink-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-600 transition shadow-lg">
                                  <i class="fa-solid fa-play mr-2"></i>Jalankan Simulasi
                              </button>
+                            <!-- Keterangan Analisis dan Interpretasi -->
+                            <div class="bg-gray-100 p-4 rounded-lg text-sm space-y-3">
+                                <h4 class="font-bold">Penjelasan Analisis dan Interpretasi</h4>
+                                <div class="space-y-1">
+                                    <p class="font-semibold text-gray-800">Dampak Bersih</p>
+                                    <p>Ini adalah **SELISIH** harga antara prediksi dengan guncangan dan prediksi normal (baseline). Angka ini menunjukkan **TAMBAHAN** kenaikan harga yang disebabkan murni oleh guncangan awal. Semakin besar angkanya, semakin signifikan dampak perambatannya.</p>
+                                </div>
+                                <div class="space-y-1">
+                                    <p class="font-semibold text-gray-800">Interpretasi</p>
+                                    <p>Grafik dan tabel di samping menunjukkan seberapa besar dan seberapa lama efek rambatan (spillover) dari satu kota ke kota lain. Perhatikan bagaimana dampak terbesar biasanya terjadi pada minggu-minggu awal, kemudian perlahan-lahan mereda seiring waktu.</p>
+                                </div>
+                            </div>
                         </div>
                         <div class="lg:col-span-2 space-y-6">
                             <div class="bg-white p-4 rounded-xl shadow-md">
-                                <h3 class="font-semibold mb-2 text-center">Peta Perambatan Guncangan Harga</h3>
-                                <div id="simulation-map"></div>
-                            </div>
-                            <div class="bg-white p-4 rounded-xl shadow-md">
-                                <h3 class="font-semibold mb-2 text-center mt-6" id="simulasi-title">Grafik Perbandingan Skenario (12 Minggu)</h3>
-                                <div class="mb-4">
-                                    <label for="city-select-sim" class="block text-sm font-medium text-gray-700 mb-2">Pilih Kota Target untuk Grafik:</label>
-                                    <select id="city-select-sim" class="w-full md:w-1/2 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"></select>
-                                </div>
+                                <h3 class="font-semibold mb-2 text-center" id="simulasi-title">Grafik Dampak Guncangan (12 Minggu)</h3>
+                                <p class="text-sm text-gray-500 mb-4 text-center">Gunakan grafik ini untuk membandingkan dampak rambatan di setiap kota target.
+                                    <br>Pilih kota sumber guncangan, klik "Jalankan Simulasi", dan lihat hasilnya di grafik di bawah ini.</p>
                                 <div id="line-chart-sim" class="plotly-chart w-full h-[350px]"></div>
                             </div>
                             <div class="bg-white p-6 rounded-xl shadow-md">
@@ -229,8 +206,7 @@
                                             <tr>
                                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Minggu</th>
                                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Kota Target</th>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Dampak Skenario 1 (Rp)</th>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Dampak Skenario 2 (Rp)</th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Dampak Kenaikan Harga (Rp)</th>
                                             </tr>
                                         </thead>
                                         <tbody id="simulation-table-body" class="bg-white divide-y divide-gray-200 text-sm"></tbody>
@@ -261,22 +237,20 @@
         let KOTA_LIST = [];
         let historicalForecastData = [];
         let simulationData = {};
-        let outlierData = [];
-        let koordinatKota = {};
         let currentSimData = null;
-        let map = null;
 
         // --- DOM ELEMENTS ---
         const loaderSection = document.getElementById('loader-section');
         const loaderText = document.getElementById('loader-text');
         const dashboardContent = document.getElementById('dashboard-content');
         const citySelectTren = document.getElementById('city-select-tren');
-        const citySelectSim = document.getElementById('city-select-sim');
         const skenario1Kota = document.getElementById('skenario1-kota');
-        const skenario2Kota = document.getElementById('skenario2-kota');
+        const skenario1Guncangan = document.getElementById('skenario1-guncangan');
         const trenChartDiv = document.getElementById('tren-chart');
         const forecastCloseupChartDiv = document.getElementById('forecast-closeup-chart');
         const runButton = document.getElementById('run-simulation');
+        const lineChartSimDiv = document.getElementById('line-chart-sim');
+        const simTableBody = document.getElementById('simulation-table-body');
         
         // =========================================================================
         // DATA LOADING AND PARSING LOGIC
@@ -330,15 +304,10 @@
                     }
                 }
 
-                // Parse Sheet 3: Data_Outlier_Historis
-                const sheet3 = workbook.Sheets['Data_Outlier_Historis'];
-                outlierData = XLSX.utils.sheet_to_json(sheet3);
-
                 // Parse Sheet 4: Koordinat_Kota
                 const sheet4 = workbook.Sheets['Koordinat_Kota'];
                 const rawCoords = XLSX.utils.sheet_to_json(sheet4);
                 KOTA_LIST = rawCoords.map(c => c.Kota);
-                rawCoords.forEach(c => koordinatKota[c.Kota] = [c.Latitude, c.Longitude]);
 
                 return true; // Success
             } catch (error) {
@@ -361,9 +330,9 @@
             // Populate Dropdowns
             KOTA_LIST.forEach(kota => {
                 const option = `<option value="${kota}">${kota}</option>`;
-                [citySelectTren, citySelectSim, skenario1Kota, skenario2Kota].forEach(sel => sel.innerHTML += option);
+                [citySelectTren, skenario1Kota].forEach(sel => sel.innerHTML += option);
             });
-            skenario2Kota.value = KOTA_LIST.length > 1 ? KOTA_LIST[1] : KOTA_LIST[0];
+            // Removed skenario 2 dropdowns
 
             setupTabs();
             setupAccordion();
@@ -374,12 +343,21 @@
             // Initial Draw
             drawTrenCharts(KOTA_LIST[0]);
             
-            // Initial map setup
-            map = L.map('simulation-map').setView([koordinatKota.Jakarta[0], koordinatKota.Jakarta[1]], 6);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
-            L.marker([koordinatKota.Jakarta[0], koordinatKota.Jakarta[1]]).addTo(map).bindPopup("<b>Jakarta</b>");
+            const initLayout = { 
+                title: 'Grafik Dampak Guncangan (12 Minggu)', 
+                xaxis: { visible: false }, 
+                yaxis: { visible: false }, 
+                annotations: [{ 
+                    text: 'Silakan pilih kota sumber guncangan dan jalankan simulasi', 
+                    showarrow: false, 
+                    xref: 'paper', 
+                    yref: 'paper', 
+                    x: 0.5, 
+                    y: 0.5, 
+                    font: { size: 16, color: '#9ca3af' }
+                }]
+            };
+            Plotly.newPlot(lineChartSimDiv, [], initLayout);
         }
 
         function setupTabs() {
@@ -475,116 +453,64 @@
         }
 
         function setupSimulasiTab() {
-            const updateVisuals = (data) => {
-                if (!data) return;
-                currentSimData = data;
-                drawSimChart(citySelectSim.value);
-                updateSimTable();
-                updateMapMarkers(data.skenario1);
-            };
-
-            const getSimResult = (source, shock, wk) => {
-                const baseImpacts = simulationData[source]?.[`Minggu ke-${wk}`] || {};
-                const impacts = {};
-                KOTA_LIST.forEach(k => impacts[k] = (baseImpacts[k] || 0) * (shock / 500));
-                return impacts;
+            const updateVisuals = () => {
+                const sourceCity = skenario1Kota.value;
+                const shockAmount = parseFloat(skenario1Guncangan.value);
+                
+                const impacts_all_weeks = Array.from({length: 12}, (_, i) => {
+                    const baseImpacts = simulationData[sourceCity]?.[`Minggu ke-${i + 1}`] || {};
+                    const impacts = {};
+                    KOTA_LIST.forEach(k => impacts[k] = (baseImpacts[k] || 0) * (shockAmount / 500));
+                    return impacts;
+                });
+                
+                drawSimChart(impacts_all_weeks, sourceCity, shockAmount);
+                updateSimTable(impacts_all_weeks);
             };
             
-            runButton.addEventListener('click', () => {
-                const s1_source = skenario1Kota.value;
-                const s1_shock = parseFloat(document.getElementById('skenario1-guncangan').value);
-                const s2_source = skenario2Kota.value;
-                const s2_shock = parseFloat(document.getElementById('skenario2-guncangan').value);
-                
-                const s1_impacts_all_weeks = Array.from({length: 12}, (_, i) => getSimResult(s1_source, s1_shock, i + 1));
-                const s2_impacts_all_weeks = Array.from({length: 12}, (_, i) => getSimResult(s2_source, s2_shock, i + 1));
-                
-                const simData = {
-                    skenario1: { source: s1_source, shock: s1_shock, impacts: s1_impacts_all_weeks },
-                    skenario2: { source: s2_source, shock: s2_shock, impacts: s2_impacts_all_weeks }
-                };
-                updateVisuals(simData);
-            });
-
-            citySelectSim.addEventListener('change', () => {
-                if(currentSimData) drawSimChart(citySelectSim.value);
-            });
+            runButton.addEventListener('click', updateVisuals);
         }
 
-        function drawSimChart(targetCity) {
+        function drawSimChart(impacts_all_weeks, sourceCity, shockAmount) {
             const weeks = Array.from({length: 12}, (_, i) => `Minggu ke-${i + 1}`);
-            const s1_impacts = currentSimData.skenario1.impacts.map(weekImpact => weekImpact[targetCity]);
-            const s2_impacts = currentSimData.skenario2.impacts.map(weekImpact => weekImpact[targetCity]);
-
-            const trace1 = { x: weeks, y: s1_impacts, name: `Skenario 1 (${currentSimData.skenario1.source}: Rp ${currentSimData.skenario1.shock})`, type: 'scatter', mode: 'lines+markers', line: { color: 'var(--primary-color)' } };
-            const trace2 = { x: weeks, y: s2_impacts, name: `Skenario 2 (${currentSimData.skenario2.source}: Rp ${currentSimData.skenario2.shock})`, type: 'scatter', mode: 'lines+markers', line: { color: '#14b8a6' } }; // teal-500
+            const traces = KOTA_LIST.map(kota => {
+                const impacts = impacts_all_weeks.map(weekImpact => weekImpact[kota]);
+                return {
+                    x: weeks,
+                    y: impacts,
+                    name: kota,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: { width: 2 },
+                    marker: { size: 8 }
+                };
+            });
             
             const layout = { 
-                title: `Evolusi Dampak Guncangan di ${targetCity}`,
-                yaxis: { title: 'Dampak Rambatan (Rp)' }, 
+                title: `Dampak Guncangan Rp ${shockAmount} di ${sourceCity} pada Setiap Kota`,
+                yaxis: { title: 'Dampak Kenaikan Harga (Rp)' }, 
                 xaxis: { tickangle: -45 },
                 margin: { l: 60, r: 20, t: 80, b: 100 }, 
-                legend: { x: 0.5, xanchor: 'center', y: -0.2 } 
+                legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.2 } 
             };
-            Plotly.newPlot('line-chart-sim', [trace1, trace2], layout, {responsive: true});
+            Plotly.newPlot(lineChartSimDiv, traces, layout, {responsive: true});
         }
 
-        function updateSimTable() {
+        function updateSimTable(impacts_all_weeks) {
             let tableHTML = '';
-            const skenario1Impacts = currentSimData.skenario1.impacts;
-            const skenario2Impacts = currentSimData.skenario2.impacts;
-
             for (let i = 0; i < 12; i++) {
                 KOTA_LIST.forEach(kota => {
-                    const impact1 = skenario1Impacts[i][kota];
-                    const impact2 = skenario2Impacts[i][kota];
+                    const impact = impacts_all_weeks[i][kota];
                     tableHTML += `
                         <tr>
                             <td class="px-4 py-2 whitespace-nowrap">${i + 1}</td>
                             <td class="px-4 py-2 whitespace-nowrap">${kota}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">${impact1.toFixed(2)}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">${impact2.toFixed(2)}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">${impact.toFixed(2)}</td>
                         </tr>
                     `;
                 });
             }
-            document.getElementById('simulation-table-body').innerHTML = tableHTML;
-        }
-
-        function updateMapMarkers(skenario) {
-            map.eachLayer(layer => {
-                if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
-                    map.removeLayer(layer);
-                }
-            });
-
-            // Add source city marker (larger, different color)
-            const sourceCoords = koordinatKota[skenario.source];
-            L.circleMarker(sourceCoords, {
-                color: 'red',
-                fillColor: '#f03',
-                fillOpacity: 0.5,
-                radius: 10
-            }).addTo(map)
-              .bindPopup(`<b>Guncangan Awal di ${skenario.source}</b><br>Besar Guncangan: Rp ${skenario.shock}`).openPopup();
-            
-            // Add markers for all cities showing Week 1 impact
-            const week1Impacts = skenario.impacts[0];
-            for (const city in week1Impacts) {
-                if (city === skenario.source) continue;
-                const coords = koordinatKota[city];
-                const impact = week1Impacts[city];
-                const markerColor = impact > 0 ? 'green' : 'red';
-                const markerRadius = Math.max(5, Math.abs(impact) / 10);
-                
-                L.circleMarker(coords, {
-                    color: markerColor,
-                    fillColor: markerColor,
-                    fillOpacity: 0.5,
-                    radius: markerRadius
-                }).addTo(map)
-                  .bindPopup(`<b>${city}</b><br>Dampak Minggu 1: ${impact.toFixed(2)} Rp`);
-            }
+            simTableBody.innerHTML = tableHTML;
         }
         
         // --- Start Application ---
