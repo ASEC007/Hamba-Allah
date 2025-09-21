@@ -14,17 +14,23 @@
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <style>
-        /* Custom styles for a cleaner look */
+        /* Custom styles with a new Pink Theme */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #ec4899; /* pink-500 */
+            --primary-color-hover: #db2777; /* pink-600 */
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5;
+            background-color: #fce7f3; /* pink-50 */
         }
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
         .tab-button { transition: all 0.3s ease; }
         .tab-button.active {
-            color: #2563eb; /* text-blue-600 */
-            border-bottom-color: #2563eb;
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
             font-weight: 600;
         }
         .plotly-chart {
@@ -34,11 +40,11 @@
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
           -webkit-appearance: none; height: 1.25rem; width: 1.25rem; border-radius: 9999px;
-          background: #2563eb; cursor: pointer; margin-top: -6px;
+          background: var(--primary-color); cursor: pointer; margin-top: -6px;
         }
         input[type=range]::-webkit-slider-runnable-track {
           width: 100%; height: 0.5rem; cursor: pointer;
-          background: #d1d5db; border-radius: 9999px;
+          background: #f3f4f6; border-radius: 9999px;
         }
         .modal-overlay { transition: opacity 0.3s ease; }
         #loader-section {
@@ -55,7 +61,7 @@
         <header class="mb-6 bg-white p-6 rounded-xl shadow-md">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div>
-                    <h1 class="text-3xl font-bold text-blue-600">Dasbor SI-RAMBAT</h1>
+                    <h1 class="text-3xl font-bold text-pink-500">Dasbor SI-RAMBAT</h1>
                     <p class="text-gray-500 mt-1">Sistem Interaktif RAmbatan BArang Pokok (Harga Beras)</p>
                 </div>
                 <div class="text-right mt-4 md:mt-0">
@@ -68,7 +74,7 @@
         <!-- Loading Section -->
         <div id="loader-section" class="bg-white p-8 rounded-xl shadow-md text-center">
             <div class="flex justify-center items-center">
-                <i class="fas fa-spinner fa-spin fa-2x text-blue-500 mr-4"></i>
+                <i class="fas fa-spinner fa-spin fa-2x text-pink-500 mr-4"></i>
                 <p id="loader-text" class="text-lg text-gray-600">Memuat data dari file Excel...</p>
             </div>
         </div>
@@ -79,10 +85,10 @@
             <div class="mb-6 bg-white rounded-lg shadow-sm">
                 <div class="border-b border-gray-200">
                     <nav class="-mb-px flex space-x-6 px-6" aria-label="Tabs">
-                        <button id="tab-tren" class="tab-button active py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        <button id="tab-tren" class="tab-button active py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-pink-500 hover:border-pink-300">
                             <i class="fa-solid fa-chart-line mr-2"></i>Tren & Peramalan
                         </button>
-                        <button id="tab-simulasi" class="tab-button py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        <button id="tab-simulasi" class="tab-button py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-pink-500 hover:border-pink-300">
                            <i class="fa-solid fa-water-arrow-up mr-2"></i>Simulasi Guncangan
                         </button>
                     </nav>
@@ -94,14 +100,21 @@
                 <!-- Tab 1: Trend & Forecast -->
                 <div id="content-tren" class="space-y-6">
                     <div class="bg-white p-6 rounded-xl shadow-md">
-                        <h2 class="text-xl font-semibold mb-1">Grafik Tren dan Peramalan Harga Beras</h2>
-                        <p class="text-sm text-gray-500 mb-4">Klik pada titik di garis peramalan (biru) untuk melihat detail.</p>
-                        <div class="mb-4">
+                        <h2 class="text-xl font-semibold mb-4">Visualisasi Tren dan Peramalan Harga</h2>
+                        <div class="mb-6">
                             <label for="city-select-tren" class="block text-sm font-medium text-gray-700 mb-2">Pilih Kota:</label>
-                            <select id="city-select-tren" class="w-full md:w-1/3 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></select>
+                            <select id="city-select-tren" class="w-full md:w-1/3 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"></select>
                         </div>
-                        <div id="tren-chart-container">
-                            <div id="tren-chart" class="plotly-chart w-full h-[500px]"></div>
+                        <!-- Main Chart -->
+                        <div id="tren-chart-container" class="mb-8">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">Grafik Historis & Peramalan</h3>
+                            <div id="tren-chart" class="plotly-chart w-full h-[450px]"></div>
+                        </div>
+                        <!-- Closeup Chart -->
+                        <div id="forecast-closeup-container">
+                             <h3 class="text-lg font-semibold text-gray-700 mb-2">Detail Peramalan 12 Minggu ke Depan</h3>
+                             <p class="text-sm text-gray-500 mb-4">Klik pada titik di garis peramalan (merah muda) untuk melihat detail angka.</p>
+                            <div id="forecast-closeup-chart" class="plotly-chart w-full h-[400px]"></div>
                         </div>
                     </div>
                 </div>
@@ -126,35 +139,35 @@
                             </div>
                             <hr/>
                             <div class="space-y-3">
-                                <h3 class="text-lg font-semibold text-blue-600">Skenario 1</h3>
+                                <h3 class="text-lg font-semibold text-pink-500">Skenario 1</h3>
                                 <div>
                                     <label for="skenario1-kota" class="block text-sm font-medium text-gray-700">Kota Sumber</label>
-                                    <select id="skenario1-kota" class="mt-1 block w-full p-2 border rounded-md shadow-sm"></select>
+                                    <select id="skenario1-kota" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"></select>
                                 </div>
                                 <div>
                                     <label for="skenario1-guncangan" class="block text-sm font-medium text-gray-700">Besar Guncangan (Rp)</label>
-                                    <input type="number" id="skenario1-guncangan" value="500" class="mt-1 block w-full p-2 border rounded-md shadow-sm">
+                                    <input type="number" id="skenario1-guncangan" value="500" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500">
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <h3 class="text-lg font-semibold text-green-600">Skenario 2</h3>
+                                <h3 class="text-lg font-semibold text-teal-500">Skenario 2</h3>
                                 <div>
                                     <label for="skenario2-kota" class="block text-sm font-medium text-gray-700">Kota Sumber</label>
-                                    <select id="skenario2-kota" class="mt-1 block w-full p-2 border rounded-md shadow-sm"></select>
+                                    <select id="skenario2-kota" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"></select>
                                 </div>
                                 <div>
                                     <label for="skenario2-guncangan" class="block text-sm font-medium text-gray-700">Besar Guncangan (Rp)</label>
-                                    <input type="number" id="skenario2-guncangan" value="500" class="mt-1 block w-full p-2 border rounded-md shadow-sm">
+                                    <input type="number" id="skenario2-guncangan" value="500" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500">
                                 </div>
                             </div>
                             <hr/>
                              <div class="space-y-3">
                                 <h3 class="text-lg font-semibold text-gray-700">Pemicu Guncangan Historis</h3>
-                                <select id="historic-shock-select" class="mt-1 block w-full p-2 border rounded-md shadow-sm">
+                                <select id="historic-shock-select" class="mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500">
                                     <option value="">Pilih Kejadian...</option>
                                 </select>
                             </div>
-                            <button id="run-simulation" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition shadow-lg">
+                            <button id="run-simulation" class="w-full bg-pink-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-pink-600 transition shadow-lg">
                                 <i class="fa-solid fa-play mr-2"></i>Jalankan Simulasi
                             </button>
                         </div>
@@ -164,7 +177,7 @@
                                 <input id="week-slider" type="range" min="1" max="12" value="1" class="w-full mt-2">
                                 <div class="flex justify-between text-xs text-gray-500 mt-1">
                                     <span>Minggu ke-1</span>
-                                    <span id="slider-label" class="font-bold text-blue-600 text-base">Minggu ke-1</span>
+                                    <span id="slider-label" class="font-bold text-pink-500 text-base">Minggu ke-1</span>
                                     <span>Minggu ke-12</span>
                                 </div>
                             </div>
@@ -225,6 +238,7 @@
         const skenario2Kota = document.getElementById('skenario2-kota');
         const historicShockSelect = document.getElementById('historic-shock-select');
         const trenChartDiv = document.getElementById('tren-chart');
+        const forecastCloseupChartDiv = document.getElementById('forecast-closeup-chart');
         const slider = document.getElementById('week-slider');
         const runButton = document.getElementById('run-simulation');
         
@@ -233,47 +247,52 @@
         // =========================================================================
         async function loadAndProcessData() {
             try {
-                // Fetch the Excel file from the same repository
                 const url = './data_dashboard_sirambat.xlsx';
                 const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`Gagal memuat file: ${response.statusText}`);
-                }
+                if (!response.ok) throw new Error(`Gagal memuat file: ${response.statusText}`);
+                
                 const data = await response.arrayBuffer();
                 const workbook = XLSX.read(data);
 
                 // Parse Sheet 1: Data_Historis_dan_Ramalan
                 const sheet1 = workbook.Sheets['Data_Historis_dan_Ramalan'];
-                historicalForecastData = XLSX.utils.sheet_to_json(sheet1);
-                // Correct date format from Excel's serial number
-                historicalForecastData.forEach(row => {
-                    if (typeof row.Tanggal === 'number') {
-                        // Excel date serial number to JS Date
-                        row.Tanggal = new Date(Date.UTC(1900, 0, row.Tanggal - 1));
-                    } else {
-                        row.Tanggal = new Date(row.Tanggal); // Handle ISO strings
-                    }
-                });
+                historicalForecastData = XLSX.utils.sheet_to_json(sheet1).map(row => ({
+                    ...row,
+                    Tanggal: new Date(Date.UTC(1900, 0, row.Tanggal - 1))
+                }));
 
-
-                // Parse Sheet 2: Hasil_Simulasi_Lengkap
+                // Parse Sheet 2: Hasil_Simulasi_Lengkap (ROBUST PARSING)
                 const sheet2 = workbook.Sheets['Hasil_Simulasi_Lengkap'];
                 const simJson = XLSX.utils.sheet_to_json(sheet2, { header: 1 });
-                const sourceCities = simJson[0].filter(c => c); // Bandung, Jogja, ...
-                const targetCities = simJson[1];
-                
-                sourceCities.forEach(sourceCity => {
-                    simulationData[sourceCity] = {};
-                    const sourceIndex = simJson[0].indexOf(sourceCity);
-                    for (let i = 3; i < simJson.length; i++) { // Data starts at row 4 (index 3)
-                        const weekKey = simJson[i][0];
-                        simulationData[sourceCity][weekKey] = {};
-                        for (let j = 0; j < 6; j++) {
-                           const targetCity = targetCities[sourceIndex + j];
-                           simulationData[sourceCity][weekKey][targetCity] = simJson[i][sourceIndex + j];
-                        }
+                const sourceHeader = simJson[0];
+                const targetHeader = simJson[1];
+                const sourceCityCols = {};
+                let lastSourceCity = '';
+
+                sourceHeader.forEach((cell, index) => {
+                    if (cell) {
+                        lastSourceCity = cell;
+                        sourceCityCols[lastSourceCity] = index;
+                        simulationData[lastSourceCity] = {};
                     }
                 });
+
+                for (let i = 3; i < simJson.length; i++) {
+                    const row = simJson[i];
+                    const weekKey = row[0];
+                    if (!weekKey) continue;
+                    for (const sourceCity in sourceCityCols) {
+                        const startCol = sourceCityCols[sourceCity];
+                        simulationData[sourceCity][weekKey] = {};
+                        for (let j = 0; j < 6; j++) {
+                            const targetCity = targetHeader[startCol + j];
+                            const value = row[startCol + j];
+                            if (targetCity && value !== undefined) {
+                                simulationData[sourceCity][weekKey][targetCity] = value;
+                            }
+                        }
+                    }
+                }
 
                 // Parse Sheet 3: Data_Outlier_Historis
                 const sheet3 = workbook.Sheets['Data_Outlier_Historis'];
@@ -281,8 +300,7 @@
 
                 // Parse Sheet 4: Koordinat_Kota
                 const sheet4 = workbook.Sheets['Koordinat_Kota'];
-                const coordsData = XLSX.utils.sheet_to_json(sheet4);
-                KOTA_LIST = coordsData.map(c => c.Kota);
+                KOTA_LIST = XLSX.utils.sheet_to_json(sheet4).map(c => c.Kota);
 
                 return true; // Success
             } catch (error) {
@@ -296,28 +314,24 @@
         // DASHBOARD INITIALIZATION AND LOGIC
         // =========================================================================
         function initializeDashboard() {
-            // Show dashboard, hide loader
             loaderSection.style.opacity = '0';
             setTimeout(() => {
                 loaderSection.classList.add('hidden');
                 dashboardContent.classList.remove('hidden');
             }, 500);
 
-            // --- Populate Dropdowns ---
+            // Populate Dropdowns
             KOTA_LIST.forEach(kota => {
                 const option = `<option value="${kota}">${kota}</option>`;
-                citySelectTren.innerHTML += option;
-                skenario1Kota.innerHTML += option;
-                skenario2Kota.innerHTML += option;
+                [citySelectTren, skenario1Kota, skenario2Kota].forEach(sel => sel.innerHTML += option);
             });
-            skenario2Kota.value = KOTA_LIST.length > 1 ? KOTA_LIST[1] : KOTA_LIST[0]; // Default
+            skenario2Kota.value = KOTA_LIST.length > 1 ? KOTA_LIST[1] : KOTA_LIST[0];
             outlierData.forEach(o => {
                 const shockText = `Rp ${Math.round(o.Guncangan_Rp)}`;
                 const text = `${o.Tanggal} - ${o.Kota} (Guncangan: ${shockText})`;
                 historicShockSelect.innerHTML += `<option value='${JSON.stringify(o)}'>${text}</option>`;
             });
 
-            // Setup the rest of the dashboard
             setupTabs();
             setupAccordion();
             setupModal();
@@ -325,7 +339,7 @@
             setupSimulasiTab();
 
             // Initial Draw
-            drawTrenChart(KOTA_LIST[0]);
+            drawTrenCharts(KOTA_LIST[0]);
             const initLayout = (title) => ({ title: title, xaxis: {visible: false}, yaxis: {visible: false}, annotations: [{ text: 'Jalankan simulasi untuk melihat hasil', showarrow: false }]});
             Plotly.newPlot('bar-chart', [], initLayout('Grafik Perbandingan'));
         }
@@ -336,14 +350,14 @@
                 simulasi: { button: document.getElementById('tab-simulasi'), content: document.getElementById('content-simulasi') }
             };
             const setActiveTab = (tabName) => {
-                Object.keys(tabs).forEach(key => {
-                    const isActive = key === tabName;
-                    tabs[key].button.classList.toggle('active', isActive);
-                    tabs[key].content.classList.toggle('hidden', !isActive);
+                Object.values(tabs).forEach(tab => {
+                    tab.button.classList.remove('active');
+                    tab.content.classList.add('hidden');
                 });
+                tabs[tabName].button.classList.add('active');
+                tabs[tabName].content.classList.remove('hidden');
             };
-            tabs.tren.button.addEventListener('click', () => setActiveTab('tren'));
-            tabs.simulasi.button.addEventListener('click', () => setActiveTab('simulasi'));
+            Object.keys(tabs).forEach(key => tabs[key].button.addEventListener('click', () => setActiveTab(key)));
         }
 
         function setupAccordion() {
@@ -356,10 +370,9 @@
         
         function setupModal() {
             const modal = document.getElementById('forecast-modal');
-            const modalContent = document.getElementById('modal-content');
             const modalCloseBtn = document.getElementById('modal-close-btn');
             window.showModal = (content) => {
-                modalContent.innerHTML = content;
+                document.getElementById('modal-content').innerHTML = content;
                 modal.classList.remove('hidden');
                 setTimeout(() => modal.classList.remove('opacity-0'), 10);
             };
@@ -368,37 +381,50 @@
                 setTimeout(() => modal.classList.add('hidden'), 300);
             };
             modalCloseBtn.addEventListener('click', hideModal);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) hideModal();
-            });
+            modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
         }
 
         function setupTrenTab() {
-            citySelectTren.addEventListener('change', (e) => drawTrenChart(e.target.value));
-            trenChartDiv.on('plotly_click', (data) => {
+            citySelectTren.addEventListener('change', (e) => drawTrenCharts(e.target.value));
+            
+            forecastCloseupChartDiv.on('plotly_click', (data) => {
                 const point = data.points[0];
-                if (point.curveNumber === 3) { // Forecast trace
+                if (point.curveNumber === 2) { // Forecast trace is the 2nd one in this chart
                     const date = new Date(point.x).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
                     const forecastVal = `Rp ${parseFloat(point.y).toFixed(2)}`;
                     const pointData = historicalForecastData.find(d => d.Tanggal.getTime() === new Date(point.data.x[point.pointNumber]).getTime() && d.Kota === citySelectTren.value);
                     const lowerBound = `Rp ${parseFloat(pointData.Batas_Bawah).toFixed(2)}`;
                     const upperBound = `Rp ${parseFloat(pointData.Batas_Atas).toFixed(2)}`;
-                    const modalHTML = `<p><strong>Tanggal:</strong> ${date}</p><p><strong>Harga Ramalan:</strong> <span class="font-semibold text-blue-600">${forecastVal}</span></p><p><strong>Batas Bawah (95%):</strong> ${lowerBound}</p><p><strong>Batas Atas (95%):</strong> ${upperBound}</p>`;
+                    const modalHTML = `<p><strong>Tanggal:</strong> ${date}</p><p><strong>Harga Ramalan:</strong> <span class="font-semibold text-pink-500">${forecastVal}</span></p><p><strong>Batas Bawah (95%):</strong> ${lowerBound}</p><p><strong>Batas Atas (95%):</strong> ${upperBound}</p>`;
                     window.showModal(modalHTML);
                 }
             });
         }
         
-        function drawTrenChart(selectedCity) {
+        function drawTrenCharts(selectedCity) {
             const cityData = historicalForecastData.filter(d => d.Kota === selectedCity);
+            const forecastData = cityData.filter(d => d.Status === 'Ramalan');
+
+            // Chart 1: Main Overview
             const trace_aktual = {
                 x: cityData.map(d => d.Tanggal), y: cityData.map(d => d.Harga_Aktual),
                 mode: 'lines', name: 'Harga Aktual', line: { color: '#4b5563', width: 2.5 }
             };
-            const forecastData = cityData.filter(d => d.Status === 'Ramalan');
-            const trace_ramalan = {
+            const trace_ramalan_overview = {
                 x: forecastData.map(d => d.Tanggal), y: forecastData.map(d => d.Harga_Ramalan),
-                mode: 'lines', name: 'Harga Ramalan', line: { color: '#3b82f6', dash: 'dash', width: 2.5 }
+                mode: 'lines', name: 'Harga Ramalan', line: { color: 'var(--primary-color)', dash: 'dash', width: 2.5 }
+            };
+            const layout_overview = {
+                title: `Perkembangan Harga Beras di ${selectedCity}`,
+                xaxis: { title: 'Tanggal' }, yaxis: { title: 'Harga (Rp)' },
+                margin: { l: 60, r: 30, t: 80, b: 50 }, legend: { x: 0.01, y: 0.98 }, hovermode: 'x unified'
+            };
+            Plotly.newPlot(trenChartDiv, [trace_aktual, trace_ramalan_overview], layout_overview, {responsive: true});
+
+            // Chart 2: Forecast Closeup
+            const trace_ramalan_closeup = {
+                x: forecastData.map(d => d.Tanggal), y: forecastData.map(d => d.Harga_Ramalan),
+                mode: 'lines', name: 'Harga Ramalan', line: { color: 'var(--primary-color)', width: 2.5 }
             };
             const trace_upper = {
                 x: forecastData.map(d => d.Tanggal), y: forecastData.map(d => d.Batas_Atas),
@@ -406,15 +432,14 @@
             };
             const trace_lower = {
                 x: forecastData.map(d => d.Tanggal), y: forecastData.map(d => d.Batas_Bawah),
-                fill: 'tonexty', mode: 'lines', fillcolor: 'rgba(59, 130, 246, 0.2)',
+                fill: 'tonexty', mode: 'lines', fillcolor: 'rgba(107, 114, 128, 0.2)',
                 line: { color: 'transparent' }, name: '95% Rentang Prediksi', showlegend: true
             };
-            const layout = {
-                title: `Perkembangan Harga Beras di ${selectedCity}`,
-                xaxis: { title: 'Tanggal' }, yaxis: { title: 'Harga (Rp)' },
-                margin: { l: 60, r: 30, t: 80, b: 50 }, legend: { x: 0.01, y: 0.98 }, hovermode: 'x unified'
+             const layout_closeup = {
+                yaxis: { title: 'Harga (Rp)' }, margin: { l: 60, r: 30, t: 40, b: 50 },
+                legend: { x: 0.01, y: 0.98 }, hovermode: 'x unified'
             };
-            Plotly.newPlot(trenChartDiv, [trace_aktual, trace_lower, trace_upper, trace_ramalan], layout, {responsive: true});
+            Plotly.newPlot(forecastCloseupChartDiv, [trace_lower, trace_upper, trace_ramalan_closeup], layout_closeup, {responsive: true});
         }
 
         function setupSimulasiTab() {
@@ -427,22 +452,22 @@
             };
             
             runButton.addEventListener('click', () => {
-                const s1_source = document.getElementById('skenario1-kota').value;
+                const s1_source = skenario1Kota.value;
                 const s1_shock = parseFloat(document.getElementById('skenario1-guncangan').value);
-                const s2_source = document.getElementById('skenario2-kota').value;
+                const s2_source = skenario2Kota.value;
                 const s2_shock = parseFloat(document.getElementById('skenario2-guncangan').value);
                 
-                const getSimResult = (source, shock, wk) => simulationData[source]?.[`Minggu ke-${wk}`] || {};
+                const getSimResult = (source, wk) => simulationData[source]?.[`Minggu ke-${wk}`] || {};
                 
                 const s1_impacts_all_weeks = Array.from({length: 12}, (_, i) => {
                     const impacts = {};
-                    const baseImpacts = getSimResult(s1_source, s1_shock, i + 1);
+                    const baseImpacts = getSimResult(s1_source, i + 1);
                     KOTA_LIST.forEach(k => impacts[k] = (baseImpacts[k] || 0) * (s1_shock/500));
                     return impacts;
                 });
                 const s2_impacts_all_weeks = Array.from({length: 12}, (_, i) => {
                     const impacts = {};
-                    const baseImpacts = getSimResult(s2_source, s2_shock, i + 1);
+                    const baseImpacts = getSimResult(s2_source, i + 1);
                     KOTA_LIST.forEach(k => impacts[k] = (baseImpacts[k] || 0) * (s2_shock/500));
                     return impacts;
                 });
@@ -460,7 +485,7 @@
             historicShockSelect.addEventListener('change', (e) => {
                 if (e.target.value) {
                     const shockEvent = JSON.parse(e.target.value);
-                    document.getElementById('skenario1-kota').value = shockEvent.Kota;
+                    skenario1Kota.value = shockEvent.Kota;
                     document.getElementById('skenario1-guncangan').value = Math.abs(Math.round(shockEvent.Guncangan_Rp));
                     runButton.click();
                 }
@@ -471,8 +496,8 @@
             const weekIndex = week - 1;
             const s1_impacts = KOTA_LIST.map(k => currentSimData.skenario1.impacts[weekIndex][k]);
             const s2_impacts = KOTA_LIST.map(k => currentSimData.skenario2.impacts[weekIndex][k]);
-            const trace1 = { x: KOTA_LIST, y: s1_impacts, name: `Skenario 1 (${currentSimData.skenario1.source})`, type: 'bar', marker: { color: '#2563eb' } };
-            const trace2 = { x: KOTA_LIST, y: s2_impacts, name: `Skenario 2 (${currentSimData.skenario2.source})`, type: 'bar', marker: { color: '#16a34a' } };
+            const trace1 = { x: KOTA_LIST, y: s1_impacts, name: `Skenario 1 (${currentSimData.skenario1.source})`, type: 'bar', marker: { color: 'var(--primary-color)' } };
+            const trace2 = { x: KOTA_LIST, y: s2_impacts, name: `Skenario 2 (${currentSimData.skenario2.source})`, type: 'bar', marker: { color: '#14b8a6' } }; // teal-500
             const layout = { barmode: 'group', yaxis: { title: 'Dampak Rambatan (Rp)' }, margin: { l: 50, r: 20, t: 40, b: 80 }, legend: { orientation: 'h', y: 1.2, x: 0.5, xanchor: 'center' } };
             Plotly.newPlot('bar-chart', [trace1, trace2], layout, {responsive: true});
         }
