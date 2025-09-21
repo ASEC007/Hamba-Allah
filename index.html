@@ -444,7 +444,7 @@
                 title: `Perbandingan Aktual dan Ramalan di ${selectedCity}`,
                 yaxis: { title: 'Harga (Rp)' },
                 xaxis: { title: 'Tanggal', tickformat: '%d %b %Y' },
-                margin: { l: 60, r: 30, t: 40, b: 50 },
+                margin: { l: 60, r: 30, t: 40, b: 120 },
                 legend: { x: 0.5, y: -0.2, orientation: 'h', xanchor: 'center' },
                 hovermode: 'x unified',
                 // Tweak y-axis range to narrow the view
@@ -495,7 +495,7 @@
                 title: `Dampak Guncangan Rp ${shockAmount} di ${sourceCity} pada Setiap Kota`,
                 yaxis: { title: 'Dampak Kenaikan Harga (Rp)' }, 
                 xaxis: { tickangle: -45 },
-                margin: { l: 60, r: 20, t: 80, b: 100 }, 
+                margin: { l: 60, r: 20, t: 80, b: 120 }, 
                 legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.2 } 
             };
             Plotly.newPlot(lineChartSimDiv, traces, layout, {responsive: true});
